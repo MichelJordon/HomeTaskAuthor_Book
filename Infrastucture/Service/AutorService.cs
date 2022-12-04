@@ -6,20 +6,30 @@
 
         public class AutorService
         {
-            private string _connectionString = "Server=127.0.0.1;Port=5432;Database=autor_books;User Id=postgres;Password=shohrukh;";
-
-            public List<Autor> GetAutors()
+            private DapperContext _context;
+            public AutorService(DapperContext context)
             {
-            using (var connection = new NpgsqlConnection(_connectionString))
-            {
-                string sql = "SELECT * FROM author";
-                var result = connection.Query<Autor>(sql).ToList();
-                return result;
+                _context = context;
             }
+            public async Task<Response<List<Autor>>>  GetAutors()
+            {
+                using (var connection = _context.CreateConnection())
+                {
+                    try
+                    {
+                        string sql = "SELECT * FROM author";
+                        var response = await connection.QueryAsync<Autor>(sql).ToList();
+                        return new Response<List<Autor>>(response.ToList());   
+                    }
+                    catch (Exception ex)
+                    {
+                        return new Response<List<Autor>>(HttpStatusCode.BadRequest, "eror 404")
+                    }
+                }
             }
             public int InsertAutors(Autor autor)
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var connection = _context.CreateConnection())
                 {
                     var sql =
                         $"Insert into author ( FirstName, LastName) VALUES ('{autor.FirstName}','{autor.LastName}')";
@@ -29,7 +39,7 @@
             }
             public int UpdateAutors(Autor autor)
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var connection = _context.CreateConnection())
                 {
                     var sql =
                         $"UPDATE author SET FirstName = '{autor.FirstName}' , LastName = {autor.LastName} WHERE Id = {autor.Id} ";
@@ -39,7 +49,7 @@
             }
             public int DeleteAutors(int id)
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var connection = _context.CreateConnection())
                 {
                     var sql = $"DELETE FROM author WHERE id = {id}";
 

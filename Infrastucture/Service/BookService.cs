@@ -6,11 +6,14 @@
 
         public class BookService
         {
-            private string _connectionString = "Server=127.0.0.1;Port=5432;Database=autor_books;User Id=postgres;Password=shohrukh;";
-
+            private DapperContext _context;
+            public AutorService(DapperContext context)
+            {
+                _context = context;
+            }
             public List<GetBooks> GetBooks()
             {
-            using (var connection = new NpgsqlConnection(_connectionString))
+            using (var connection = _context.CreateConnection())
             {
                 string sql = "select a.id, a.FirstName, a.LastName , b.BookName from author as a join book as b  on a.id = b.author_id";
                 var result = connection.Query<GetBooks>(sql).ToList();
@@ -19,7 +22,7 @@
             }
             public int InsertBooks(Book book)
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var connection = _context.CreateConnection())
                 {
                     var sql =
                         $"Insert into Book ( BookName, author_id) VALUES ('{book.BookName}',{(int)book.Author_id})";
@@ -29,7 +32,7 @@
             }
             public int UpdateBooks(Book book)
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var connection = _context.CreateConnection())
                 {
                     var sql =
                         $"UPDATE Book SET BookName = '{book.BookName}' , author_id = {book.Author_id} WHERE Id = {book.Id} ";
@@ -39,7 +42,7 @@
             }
             public int DeleteBook(int id)
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var connection = _context.CreateConnection())
                 {
                     var sql = $"DELETE FROM Book WHERE id = {id}";
 
